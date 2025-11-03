@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배달의민족 리뷰</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #f5576c;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
+        .reviews-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .review-item {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f5576c;
+            transition: all 0.3s ease;
+        }
+        
+        .review-item:hover {
+            background: #f5f5f5;
+            transform: translateX(5px);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .review-rating {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .review-rating .star {
+            font-size: 1.5em;
+            color: #ffd700;
+        }
+        
+        .review-date {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .review-content {
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        
+        .reply-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .reply-list {
+            margin-bottom: 10px;
+        }
+        
+        .reply-item {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 3px solid #4ecdc4;
+        }
+        
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .reply-author {
+            font-weight: 600;
+            color: #4ecdc4;
+            font-size: 0.9em;
+        }
+        
+        .reply-date {
+            color: #999;
+            font-size: 0.85em;
+        }
+        
+        .reply-content {
+            color: #555;
+            font-size: 0.95em;
+            text-align: left;
+        }
+        
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #f5576c;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: #f093fb;
+            transform: translateY(-2px);
+        }
+        
+        .refresh-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #f5576c;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            background: #f093fb;
+            transform: translateY(-2px);
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .buttons-container .back-btn {
+            flex: 1;
+            margin-top: 0;
+        }
+        
+        .buttons-container .refresh-btn {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 배달의민족 리뷰</h1>
+        
+        <button class="refresh-btn" onclick="loadReviews()">🔄 새로고침</button>
+        
+        <div class="reviews-container" id="reviewsContainer">
+            <div class="empty-message" id="emptyMessage">
+                아직 작성된 리뷰가 없습니다.
+            </div>
+        </div>
+        
+        <div class="buttons-container">
+            <a href="git.html" class="back-btn">← 메인 메뉴로 돌아가기</a>
+        </div>
+    </div>
+    
+    <script>
+        // 지연된 자동 답글 체크 함수
+        function checkPendingAutoReplies() {
+            const storedReviews = localStorage.getItem('reviews');
+            if (!storedReviews) return;
+            
+            const reviews = JSON.parse(storedReviews);
+            let hasChanges = false;
+            const now = Date.now();
+            
+            reviews.forEach(review => {
+                // 지연된 자동 답글이 있고 시간이 지났는지 확인
+                if (review.pendingAutoReply) {
+                    if (now >= review.pendingAutoReply.scheduledTime) {
+                        // 자동 답글 추가
+                        const autoReply = {
+                            id: now + Math.random(),
+                            author: '관리자',
+                            content: review.pendingAutoReply.text,
+                            date: new Date().toLocaleString('ko-KR'),
+                            isAuto: true
+                        };
+                        
+                        if (!review.replies) {
+                            review.replies = [];
+                        }
+                        review.replies.push(autoReply);
+                        
+                        // pendingAutoReply 제거
+                        delete review.pendingAutoReply;
+                        hasChanges = true;
+                    }
+                }
+            });
+            
+            // 변경사항이 있으면 localStorage에 저장
+            if (hasChanges) {
+                localStorage.setItem('reviews', JSON.stringify(reviews));
+                console.log('지연된 자동 답글이 추가되었습니다!');
+            }
+        }
+        
+        // 리뷰 로드 함수
+        function loadReviews() {
+            // 먼저 지연된 자동 답글 체크
+            checkPendingAutoReplies();
+            
+            const container = document.getElementById('reviewsContainer');
+            const emptyMessage = document.getElementById('emptyMessage');
+            
+            // localStorage에서 리뷰 가져오기
+            const storedReviews = localStorage.getItem('reviews');
+            
+            if (!storedReviews) {
+                container.innerHTML = '<div class="empty-message">아직 작성된 리뷰가 없습니다.</div>';
+                return;
+            }
+            
+            const reviews = JSON.parse(storedReviews);
+            
+            if (reviews.length === 0) {
+                container.innerHTML = '<div class="empty-message">아직 작성된 리뷰가 없습니다.</div>';
+                return;
+            }
+            
+            // 리뷰 목록 생성
+            let reviewsHTML = '';
+            reviews.forEach(review => {
+                // 별점 표시
+                let starsHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= review.rating) {
+                        starsHTML += '<span class="star">★</span>';
+                    } else {
+                        starsHTML += '<span class="star" style="color: #ddd;">★</span>';
+                    }
+                }
+                
+                // 답글 목록 생성
+                let repliesHTML = '';
+                if (review.replies && review.replies.length > 0) {
+                    review.replies.forEach(reply => {
+                        repliesHTML += `
+                            <div class="reply-item">
+                                <div class="reply-header">
+                                    <span class="reply-author">👤 ${reply.author}</span>
+                                    <span class="reply-date">${reply.date}</span>
+                                </div>
+                                <div class="reply-content">${reply.content}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                reviewsHTML += `
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="review-rating">
+                                ${starsHTML}
+                            </div>
+                            <div class="review-date">${review.date}</div>
+                        </div>
+                        <div class="review-content">${review.content}</div>
+                        ${repliesHTML ? `<div class="reply-section"><div class="reply-list">${repliesHTML}</div></div>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = reviewsHTML;
+        }
+        
+        // 페이지 로드 시 리뷰 표시
+        loadReviews();
+    </script>
+</body>
+</html>
+
