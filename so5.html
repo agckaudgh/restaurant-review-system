@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배달의민족</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #fa709a;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+        
+        p {
+            color: #666;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #fa709a;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #fee140;
+            transform: translateY(-2px);
+        }
+        
+        .auth-section {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .auth-btn {
+            padding: 8px 20px;
+            border: 2px solid #fa709a;
+            background: white;
+            color: #fa709a;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .auth-btn:hover {
+            background: #fa709a;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .auth-btn.login {
+            background: #fa709a;
+            color: white;
+        }
+        
+        .auth-btn.login:hover {
+            background: #fee140;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #fa709a;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #fa709a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            background: #fee140;
+            transform: translateY(-2px);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #fa709a;
+        }
+        
+        .logout-btn {
+            padding: 8px 20px;
+            border: 2px solid #ff6b6b;
+            background: white;
+            color: #ff6b6b;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+        
+        .logout-btn:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-section" id="authSection">
+            <button class="auth-btn" onclick="openModal('signup')">회원가입</button>
+            <button class="auth-btn login" onclick="openModal('login')">로그인</button>
+        </div>
+        
+        <div class="user-info" id="userInfo" style="display: none;">
+            <span class="user-name" id="userName"></span>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+        
+        <h1>🌟 배달의민족</h1>
+        <p>여기는 배달의민족 내용입니다.</p>
+        <a href="git.html" class="back-btn">← 메인 메뉴로 돌아가기</a>
+    </div>
+    
+    <!-- 로그인 모달 -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #fa709a;">로그인</h2>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginId">아이디</label>
+                    <input type="text" id="loginId" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPw">비밀번호</label>
+                    <input type="password" id="loginPw" required>
+                </div>
+                <button type="submit" class="submit-btn">로그인</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 회원가입 모달 -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('signupModal')">&times;</span>
+            <h2 style="margin-bottom: 20px; color: #fa709a;">회원가입</h2>
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signupId">아이디</label>
+                    <input type="text" id="signupId" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPw">비밀번호</label>
+                    <input type="password" id="signupPw" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupName">이름</label>
+                    <input type="text" id="signupName" required>
+                </div>
+                <button type="submit" class="submit-btn">회원가입</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // 페이지 로드 시 로그인 상태 확인
+        window.onload = function() {
+            checkLoginStatus();
+        };
+        
+        // 로그인 상태 확인
+        function checkLoginStatus() {
+            const currentUser = localStorage.getItem('baeminCurrentUser');
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('userName').textContent = '👤 ' + user.name + '님';
+            } else {
+                document.getElementById('authSection').style.display = 'flex';
+                document.getElementById('userInfo').style.display = 'none';
+            }
+        }
+        
+        // 모달 열기
+        function openModal(type) {
+            document.getElementById(type + 'Modal').style.display = 'block';
+        }
+        
+        // 모달 닫기
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // 회원가입
+        function handleSignup(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('signupId').value;
+            const pw = document.getElementById('signupPw').value;
+            const name = document.getElementById('signupName').value;
+            
+            // 기존 사용자 확인
+            const users = JSON.parse(localStorage.getItem('baeminUsers') || '[]');
+            const existingUser = users.find(u => u.id === id);
+            
+            if (existingUser) {
+                alert('이미 존재하는 아이디입니다.');
+                return;
+            }
+            
+            // 새 사용자 추가
+            const newUser = { id, pw, name, signupDate: new Date().toLocaleString('ko-KR') };
+            users.push(newUser);
+            localStorage.setItem('baeminUsers', JSON.stringify(users));
+            
+            alert('회원가입이 완료되었습니다!');
+            closeModal('signupModal');
+            document.getElementById('signupForm').reset();
+            
+            // 바로 로그인
+            localStorage.setItem('baeminCurrentUser', JSON.stringify(newUser));
+            checkLoginStatus();
+        }
+        
+        // 로그인
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('loginId').value;
+            const pw = document.getElementById('loginPw').value;
+            
+            const users = JSON.parse(localStorage.getItem('baeminUsers') || '[]');
+            const user = users.find(u => u.id === id && u.pw === pw);
+            
+            if (user) {
+                // 사용자 정보 저장 (비밀번호 제외)
+                const userInfo = { id: user.id, name: user.name, signupDate: user.signupDate };
+                localStorage.setItem('baeminCurrentUser', JSON.stringify(userInfo));
+                alert('로그인 성공!');
+                closeModal('loginModal');
+                document.getElementById('loginForm').reset();
+                checkLoginStatus();
+            } else {
+                alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+            }
+        }
+        
+        // 로그아웃
+        function logout() {
+            localStorage.removeItem('baeminCurrentUser');
+            alert('로그아웃되었습니다.');
+            checkLoginStatus();
+        }
+        
+        // 모달 외부 클릭 시 닫기
+        window.onclick = function(event) {
+            const loginModal = document.getElementById('loginModal');
+            const signupModal = document.getElementById('signupModal');
+            if (event.target === loginModal) {
+                closeModal('loginModal');
+            }
+            if (event.target === signupModal) {
+                closeModal('signupModal');
+            }
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리뷰작성 (소비자)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #4ecdc4;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4ecdc4;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        .rating-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .star {
+            font-size: 2em;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #4ecdc4;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn {
+            background: #4ecdc4;
+            color: white;
+        }
+        
+        .submit-btn:hover {
+            background: #44a08d;
+            transform: translateY(-2px);
+        }
+        
+        .back-btn {
+            background: white;
+            color: #4ecdc4;
+            border: 2px solid #4ecdc4;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: #4ecdc4;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 리뷰작성 (소비자)</h1>
+        
+        <form id="reviewForm">
+            <div class="form-group">
+                <label for="rating">평점</label>
+                <div class="rating-group">
+                    <div class="rating-stars">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <span id="ratingValue" style="color: #666; font-weight: 600;">0점</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="reviewContent">리뷰 내용</label>
+                <textarea id="reviewContent" placeholder="리뷰를 작성해주세요" required></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn submit-btn">작성 완료</button>
+                <a href="git.html" class="btn back-btn">취소</a>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // 리뷰 감정 분석 함수
+        function analyzeReviewSentiment(content, rating) {
+            const positiveKeywords = ['좋아', '맛있', '훌륭', '완벽', '최고', '최고의', '추천', '감사', '감동', '친절', '깔끔', '신선'];
+            const negativeKeywords = ['별로', '느려', '불친절', '불만', '비위생', '불만족', '환불', '실망', '나쁘', '최악', '불편'];
+            
+            const contentLower = content.toLowerCase();
+            
+            if (rating <= 2) {
+                return 'negative';
+            }
+            
+            if (rating >= 4) {
+                return 'positive';
+            }
+            
+            let positiveCount = 0;
+            let negativeCount = 0;
+            
+            positiveKeywords.forEach(keyword => {
+                if (contentLower.includes(keyword)) {
+                    positiveCount++;
+                }
+            });
+            
+            negativeKeywords.forEach(keyword => {
+                if (contentLower.includes(keyword)) {
+                    negativeCount++;
+                }
+            });
+            
+            if (positiveCount > negativeCount) {
+                return 'positive';
+            } else if (negativeCount > positiveCount) {
+                return 'negative';
+            }
+            
+            return 'neutral';
+        }
+        
+        // 감정별 자동 답글 생성
+        function generateSmartReply(content, rating) {
+            const sentiment = analyzeReviewSentiment(content, rating);
+            
+            const replies = {
+                positive: [
+                    '감사합니다! 좋은 평가 주셔서 진심으로 감사드립니다. 더욱 노력하겠습니다! 🙏',
+                    '고객님의 만족이 저희의 보람입니다. 언제나 최선을 다하겠습니다. 감사합니다! 😊',
+                    '좋은 말씀 감사드립니다. 앞으로도 좋은 서비스 제공하겠습니다! 🙌',
+                    '행복한 식사가 되셨다니 기쁩니다. 항상 감사합니다! ❤️'
+                ],
+                neutral: [
+                    '리뷰 남겨주셔서 감사합니다. 더 나은 서비스로 보답하겠습니다! 🙏',
+                    '언제나 최선을 다하겠습니다. 관심 가져주셔서 감사합니다! 😊',
+                    '소중한 의견 감사드립니다. 계속 개선해나가겠습니다! 🙌'
+                ],
+                negative: [
+                    '불편을 드려 죄송합니다. 소중한 의견을 반영하여 개선하겠습니다. 🙏',
+                    '고객님의 피드백이 저희에게 큰 도움이 됩니다. 즉시 개선하겠습니다. 😔',
+                    '불편을 드려 정말 죄송합니다. 더 나은 서비스를 위해 노력하겠습니다. 🙏',
+                    '소중한 지적 감사드립니다. 바로 조치하여 개선하겠습니다. 😊'
+                ]
+            };
+            
+            const repliesForSentiment = replies[sentiment];
+            const randomIndex = Math.floor(Math.random() * repliesForSentiment.length);
+            return repliesForSentiment[randomIndex];
+        }
+        
+        // 2차 답글 스케줄링 함수 (일반 리뷰 - 리뷰 작성 시)
+        function scheduleSecondReplyInReview(review) {
+            const secondReplyDelay = localStorage.getItem('secondReplyDelay');
+            const secondReplyText = localStorage.getItem('secondReplyText');
+            
+            if (!secondReplyDelay || !secondReplyText) {
+                return;
+            }
+            
+            const delayMinutes = parseInt(secondReplyDelay);
+            if (!delayMinutes || delayMinutes <= 0) {
+                return;
+            }
+            
+            review.pendingSecondReply = {
+                text: secondReplyText.trim(),
+                delayMinutes: delayMinutes,
+                scheduledTime: Date.now() + (delayMinutes * 60 * 1000)
+            };
+        }
+        
+        let selectedRating = 0;
+        
+        // 별점 클릭 이벤트
+        const stars = document.querySelectorAll('.star');
+        const ratingValue = document.getElementById('ratingValue');
+        
+        stars.forEach((star, index) => {
+            star.addEventListener('click', function() {
+                selectedRating = index + 1;
+                updateStars();
+                ratingValue.textContent = selectedRating + '점';
+            });
+        });
+        
+        function updateStars() {
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+        
+        // 폼 제출 이벤트
+        document.getElementById('reviewForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const reviewContent = document.getElementById('reviewContent').value;
+            
+            if (selectedRating === 0) {
+                alert('평점을 선택해주세요.');
+                return;
+            }
+            
+            // 리뷰 데이터 생성
+            const now = Date.now();
+            const reviewData = {
+                id: now, // 고유 ID 생성
+                rating: selectedRating,
+                content: reviewContent,
+                date: new Date().toLocaleString('ko-KR'), // 작성일
+                timestamp: now, // 작성 시각 (밀리초)
+                replies: [] // 답글 배열 초기화
+            };
+            
+            // localStorage에 저장 (기존 리뷰들 가져오기)
+            let reviews = [];
+            const storedReviews = localStorage.getItem('reviews');
+            if (storedReviews) {
+                reviews = JSON.parse(storedReviews);
+            }
+            
+            // 자동 답글 설정 정보 저장 (토글이 ON이고 설정된 경우)
+            const autoReplyEnabled = localStorage.getItem('autoReplyEnabled');
+            const autoReplyText = localStorage.getItem('autoReplyText');
+            const autoReplyDelay = localStorage.getItem('autoReplyDelay');
+            const aiReplyEnabled = localStorage.getItem('aiReplyEnabled') === 'true';
+            
+            // 감정 기반 자동 답글이 활성화되어 있으면 무조건 달기
+            if (aiReplyEnabled) {
+                const aiReply = generateSmartReply(reviewContent, selectedRating);
+                
+                if (autoReplyEnabled === 'true' && autoReplyText && autoReplyText.trim() !== '') {
+                    // 고정 문구도 있으면 함께 추가
+                    const replyContent = aiReply + '\n\n' + autoReplyText.trim();
+                    const delayMinutes = autoReplyDelay !== null ? parseInt(autoReplyDelay) : null;
+                    
+                    if (delayMinutes === 0) {
+                        // 지연시간이 0이면 즉시 답글 추가
+                        reviewData.replies.push({
+                            id: now + Math.random(),
+                            author: '관리자',
+                            content: replyContent,
+                            date: new Date().toLocaleString('ko-KR'),
+                            isAuto: true
+                        });
+                        
+                        // 즉시 답글 추가 후 2차 답글 스케줄링
+                        scheduleSecondReplyInReview(reviewData);
+                    } else if (delayMinutes !== null) {
+                        // 지연시간이 있으면 pendingAutoReply에 저장
+                        reviewData.pendingAutoReply = {
+                            text: replyContent,
+                            delayMinutes: delayMinutes,
+                            scheduledTime: now + (delayMinutes * 60 * 1000)
+                        };
+                    }
+                } else {
+                    // 고정 문구가 없으면 감정 기반 답글만 추가
+                    reviewData.replies.push({
+                        id: now + Math.random(),
+                        author: '관리자',
+                        content: aiReply,
+                        date: new Date().toLocaleString('ko-KR'),
+                        isAuto: true,
+                        isAI: true
+                    });
+                }
+            } else if (autoReplyEnabled === 'true' && autoReplyText && autoReplyText.trim() !== '') {
+                // 자동 답글이 활성화되어 있고 감정 기반 자동 답글이 없을 때
+                const delayMinutes = autoReplyDelay !== null ? parseInt(autoReplyDelay) : null;
+                
+                if (delayMinutes === 0) {
+                    // 지연시간이 0이면 즉시 답글 추가
+                    reviewData.replies.push({
+                        id: now + Math.random(),
+                        author: '관리자',
+                        content: autoReplyText.trim(),
+                        date: new Date().toLocaleString('ko-KR'),
+                        isAuto: true
+                    });
+                    
+                    // 즉시 답글 추가 후 2차 답글 스케줄링
+                    scheduleSecondReplyInReview(reviewData);
+                } else if (delayMinutes !== null) {
+                    // 지연시간이 있으면 pendingAutoReply에 저장
+                    reviewData.pendingAutoReply = {
+                        text: autoReplyText.trim(),
+                        delayMinutes: delayMinutes,
+                        scheduledTime: now + (delayMinutes * 60 * 1000)
+                    };
+                }
+            }
+            
+            // 새 리뷰 추가
+            reviews.unshift(reviewData); // 최신 리뷰가 위에 오도록
+            localStorage.setItem('reviews', JSON.stringify(reviews));
+            
+            alert('리뷰가 작성되었습니다!\n\n평점: ' + selectedRating + '점\n\n리뷰 내용:\n' + reviewContent);
+            
+            // 폼 초기화
+            document.getElementById('reviewForm').reset();
+            selectedRating = 0;
+            updateStars();
+            ratingValue.textContent = '0점';
+        });
+    </script>
+</body>
+</html>
+

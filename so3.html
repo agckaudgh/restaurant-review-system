@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2차답글 등록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #4facfe;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
+        .settings-section {
+            background: #f0f9ff;
+            border: 2px solid #4facfe;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .settings-title {
+            color: #4facfe;
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .store-select-section {
+            margin-bottom: 15px;
+        }
+        
+        .store-select-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .store-select-section select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #4facfe;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+        
+        .delay-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .delay-label {
+            font-size: 1.1em;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .delay-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .delay-btn {
+            padding: 8px 20px;
+            border: 2px solid #4facfe;
+            background: white;
+            color: #4facfe;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+        
+        .delay-btn:hover {
+            background: #f0f9ff;
+        }
+        
+        .delay-btn.selected {
+            background: #4facfe;
+            color: white;
+        }
+        
+        .delay-info {
+            font-size: 0.95em;
+            color: #666;
+        }
+        
+        .settings-form {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .settings-form textarea {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .settings-form textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .save-btn {
+            padding: 15px 30px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .save-btn:hover {
+            background: #00f2fe;
+            transform: translateY(-2px);
+        }
+        
+        .settings-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e0f2fe;
+            border-radius: 10px;
+            font-size: 1.05em;
+            color: #333;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #4facfe;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .back-btn:hover {
+            background: #00f2fe;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 2차답글 등록</h1>
+        
+        <div class="settings-section">
+            <div class="settings-title">⚙️ 2차 자동 답글 고정 문구 설정</div>
+            
+            <div class="store-select-section">
+                <label>가게 선택:</label>
+                <select id="storeSelect" onchange="loadStoreAutoReply()">
+                    <option value="ALL">전체 가게</option>
+                </select>
+            </div>
+            
+            <div class="delay-section">
+                <span class="delay-label">지연 시간:</span>
+                <div class="delay-buttons">
+                    <button class="delay-btn" data-minutes="1" onclick="selectDelay(1)">1분</button>
+                    <button class="delay-btn" data-minutes="3" onclick="selectDelay(3)">3분</button>
+                    <button class="delay-btn" data-minutes="5" onclick="selectDelay(5)">5분</button>
+                </div>
+                <span class="delay-info">선택: <span id="selectedDelay">없음</span></span>
+            </div>
+            
+            <div class="settings-form">
+                <textarea id="secondReplyText" placeholder="첫 번째 고정답글 이후에 자동으로 달릴 2차 답글 문구를 입력하세요"></textarea>
+                <button class="save-btn" onclick="saveSecondReply()">저장</button>
+            </div>
+            
+            <div class="settings-info" id="settingsInfo">
+                현재 설정된 문구: <span id="currentSetting">없음</span>
+            </div>
+        </div>
+        
+        <a href="git.html" class="back-btn">← 메인 메뉴로 돌아가기</a>
+    </div>
+    
+    <script>
+        // 가게 목록 로드 함수
+        function loadStoreList() {
+            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            const allStores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const select = document.getElementById('storeSelect');
+            
+            // 기존 옵션 제거 (전체 가게 제외)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // 연결된 가게만 추가
+            connectedStores.forEach(storeId => {
+                const store = allStores.find(s => s.id === storeId);
+                if (store) {
+                    const option = document.createElement('option');
+                    option.value = storeId;
+                    option.textContent = store.name;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        // 2차 답글 로드 함수
+        function loadStoreAutoReply() {
+            const selectedStore = document.getElementById('storeSelect').value;
+            
+            if (selectedStore === 'ALL') {
+                const storedReply = localStorage.getItem('secondReplyText');
+                document.getElementById('currentSetting').textContent = storedReply || '없음';
+            } else {
+                const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
+                document.getElementById('currentSetting').textContent = storeSecondReplies[selectedStore] || '없음';
+            }
+        }
+        
+        // 지연 시간 선택 함수
+        function selectDelay(minutes) {
+            // 모든 버튼의 선택 상태 제거
+            const buttons = document.querySelectorAll('.delay-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            
+            // 선택된 버튼 찾아서 selected 클래스 추가
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-minutes') == minutes) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // localStorage에 저장 (문자열로 변환)
+            localStorage.setItem('secondReplyDelay', String(minutes));
+            
+            // UI 업데이트
+            document.getElementById('selectedDelay').textContent = minutes + '분';
+        }
+        
+        // 지연 시간 상태 로드 함수
+        function loadDelayState() {
+            const delay = localStorage.getItem('secondReplyDelay');
+            const buttons = document.querySelectorAll('.delay-btn');
+            
+            if (delay !== null) {
+                buttons.forEach(btn => {
+                    if (parseInt(btn.getAttribute('data-minutes')) === parseInt(delay)) {
+                        btn.classList.add('selected');
+                    }
+                });
+                
+                document.getElementById('selectedDelay').textContent = delay + '분';
+            }
+        }
+        
+        // 2차 답글 저장 함수
+        function saveSecondReply() {
+            const secondReplyText = document.getElementById('secondReplyText').value.trim();
+            const selectedStore = document.getElementById('storeSelect').value;
+            
+            if (secondReplyText === '') {
+                alert('2차 답글 문구를 입력해주세요.');
+                return;
+            }
+            
+            if (selectedStore === 'ALL') {
+                // 전체 가게용
+                localStorage.setItem('secondReplyText', secondReplyText);
+            } else {
+                // 특정 가게용
+                const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
+                storeSecondReplies[selectedStore] = secondReplyText;
+                localStorage.setItem('storeSecondReplies', JSON.stringify(storeSecondReplies));
+            }
+            
+            document.getElementById('currentSetting').textContent = secondReplyText;
+            document.getElementById('secondReplyText').value = '';
+            alert('2차 답글 문구가 저장되었습니다!');
+        }
+        
+        // 페이지 로드 시 실행
+        window.onload = function() {
+            loadStoreList();
+            loadStoreAutoReply();
+            loadDelayState();
+        };
+    </script>
+</body>
+</html>

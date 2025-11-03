@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 / 로그인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* auth와 main 섹션용 wrapper */
+        .body-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+        }
+        
+        .main-container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .main-header h1 {
+            color: #333;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .logout-btn {
+            padding: 10px 25px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+        
+        .menu-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 50px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .menu-card:nth-child(1) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .menu-card:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .menu-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .menu-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .menu-desc {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 60px 50px;
+        }
+        
+        .left-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .left-panel h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .left-panel p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+        
+        .panel-toggle {
+            display: none;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .panel-toggle:hover {
+            background: white;
+            color: #667eea;
+        }
+        
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            position: relative;
+        }
+        
+        .toggle-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+        
+        .toggle-text button {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            text-decoration: underline;
+        }
+        
+        .toggle-text button:hover {
+            color: #764ba2;
+        }
+        
+        #loginPanel, #signupPanel {
+            display: none;
+        }
+        
+        #signupPanel {
+            display: block;
+        }
+        
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        /* 배민셀프서비스 페이지 스타일 */
+        #baeminSection {
+            display: none;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #f5f5f5;
+        }
+        
+        .baemin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .baemin-sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .baemin-sidebar h2 {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .sidebar-menu li {
+            margin-bottom: 15px;
+        }
+        
+        .sidebar-menu a {
+            display: block;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .sidebar-menu a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .sidebar-menu a.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .baemin-content {
+            flex: 1;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        
+        .baemin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .baemin-header h3 {
+            font-size: 2em;
+            color: #333;
+        }
+        
+        .back-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .star-btn {
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .star-btn:hover {
+            background: #fff9c4;
+            border-color: #667eea;
+        }
+        
+        .star-btn.active {
+            background: #ffd700;
+            border-color: #667eea;
+        }
+        
+        #authSection {
+            display: block;
+        }
+        
+        #mainSection {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .left-panel {
+                padding: 40px 30px;
+                display: none;
+            }
+            
+            .panel-toggle {
+                display: inline-block;
+            }
+            
+            .right-panel {
+                padding: 40px 30px;
+            }
+            
+            .left-panel h1 {
+                font-size: 2em;
+            }
+            
+            .main-container {
+                padding: 40px 30px;
+            }
+            
+            .main-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            
+            .main-header h1 {
+                font-size: 2em;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .baemin-layout {
+                flex-direction: column;
+            }
+            
+            .baemin-sidebar {
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .baemin-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="body-wrapper">
+        <!-- 인증 섹션 (로그인/회원가입) -->
+        <div id="authSection" class="container">
+        <!-- 왼쪽 패널 -->
+        <div class="left-panel">
+            <h1>환영합니다!</h1>
+            <p>회원가입하고<br>다양한 서비스를 이용해보세요</p>
+            <button class="panel-toggle" onclick="togglePanel()">로그인하기</button>
+        </div>
+        
+        <!-- 오른쪽 패널 -->
+        <div class="right-panel">
+            <!-- 회원가입 패널 -->
+            <div id="signupPanel" class="form-section">
+                <h2>회원가입</h2>
+                <div id="signupMessage"></div>
+                <form id="signupForm" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signupId">아이디</label>
+                        <input type="text" id="signupId" placeholder="아이디를 입력하세요" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPw">비밀번호</label>
+                        <input type="password" id="signupPw" placeholder="비밀번호를 입력하세요" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPwConfirm">비밀번호 확인</label>
+                        <input type="password" id="signupPwConfirm" placeholder="비밀번호를 다시 입력하세요" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupName">이름</label>
+                        <input type="text" id="signupName" placeholder="이름을 입력하세요" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">이메일</label>
+                        <input type="email" id="signupEmail" placeholder="이메일을 입력하세요" required>
+                    </div>
+                    <button type="submit" class="submit-btn">회원가입</button>
+                    <div class="toggle-text">
+                        이미 계정이 있으신가요? <button type="button" onclick="switchToLogin()">로그인하기</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 로그인 패널 -->
+            <div id="loginPanel" class="form-section">
+                <h2>로그인</h2>
+                <div id="loginMessage"></div>
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginId">아이디</label>
+                        <input type="text" id="loginId" placeholder="아이디를 입력하세요" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPw">비밀번호</label>
+                        <input type="password" id="loginPw" placeholder="비밀번호를 입력하세요" required>
+                    </div>
+                    <button type="submit" class="submit-btn">로그인</button>
+                    <div class="toggle-text">
+                        아직 계정이 없으신가요? <button type="button" onclick="switchToSignup()">회원가입하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+        <!-- 메인 섹션 (로그인 후) -->
+        <div id="mainSection" class="main-container">
+        <div class="main-header">
+            <h1>메인 화면</h1>
+            <div class="user-section">
+                <span class="user-name" id="userNameDisplay"></span>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </div>
+        </div>
+        <div class="menu-grid">
+            <a href="#" class="menu-card" onclick="event.preventDefault(); openBaeminService();">
+                <div class="menu-icon">🍔</div>
+                <div class="menu-title">배민셀프서비스</div>
+                <div class="menu-desc">배달의 민족 셀프서비스</div>
+            </a>
+            <a href="#" class="menu-card" onclick="event.preventDefault(); openReviewPage();">
+                <div class="menu-icon">⭐</div>
+                <div class="menu-title">리뷰달기</div>
+                <div class="menu-desc">리뷰를 작성하고 관리하세요</div>
+            </a>
+        </div>
+        </div>
+    </div>
+    
+    <!-- 배민셀프서비스 섹션 -->
+    <div id="baeminSection" style="display: none;">
+        <div class="baemin-layout">
+            <!-- 왼쪽 사이드바 -->
+            <aside class="baemin-sidebar">
+                <h2>🍔 배민셀프서비스</h2>
+                <ul class="sidebar-menu">
+                    <li><a href="#" onclick="showBaeminContent('store')" class="active">🏪 가게 현황</a></li>
+                    <li><a href="#" onclick="showBaeminContent('review')">⭐ 리뷰관리</a></li>
+                </ul>
+            </aside>
+            
+            <!-- 메인 콘텐츠 영역 -->
+            <main class="baemin-content">
+                <div class="baemin-header">
+                    <h3 id="contentTitle">가게 현황</h3>
+                    <button class="back-btn" onclick="backToMain()">← 메인으로</button>
+                </div>
+                
+                <div class="content-card">
+                    <div id="storeContent">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                            <h4 style="color: #667eea; margin: 0;">가게 현황</h4>
+                            <button onclick="showAddStoreForm()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ➕ 가게 추가
+                            </button>
+                        </div>
+                        
+                        <!-- 가게 목록 -->
+                        <div id="storeList">
+                            <p style="color: #999; text-align: center;">등록된 가게가 없습니다.</p>
+                        </div>
+                        
+                        <!-- 가게 추가 폼 -->
+                        <div id="addStoreForm" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                            <h5 style="color: #667eea; margin-bottom: 20px;">가게 정보 입력</h5>
+                            <form onsubmit="addStore(event)">
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #555;">가게명</label>
+                                    <input type="text" id="storeName" required style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;">
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="submit" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        저장
+                                    </button>
+                                    <button type="button" onclick="cancelAddStore()" style="flex: 1; padding: 10px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                        취소
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div id="reviewContent" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                            <h4 style="color: #667eea; margin: 0;">리뷰 관리</h4>
+                        </div>
+                        
+                        <!-- 보기 모드 선택 -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                <button onclick="showAllReviews()" id="allViewBtn" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    전체보기
+                                </button>
+                                <button onclick="showFilteredReviews()" id="filterViewBtn" style="flex: 1; padding: 10px; background: #e0e0e0; color: #666; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    가게선택보기
+                                </button>
+                            </div>
+                            
+                            <!-- 가게 선택 (가게선택보기 모드에서만 표시) -->
+                            <div id="storeFilterSection" style="display: none;">
+                                <select id="reviewFilterStoreSelect" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;" onchange="filterReviewsByStore()">
+                                    <option value="">전체 가게</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- 리뷰 목록 -->
+                        <div id="reviewList">
+                            <p style="color: #999; text-align: center;">등록된 리뷰가 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- 리뷰달기 섹션 -->
+    <div id="reviewSection" style="display: none; min-height: 100vh; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f5f5f5;">
+        <div style="background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); padding: 40px; max-width: 800px; width: 90%; margin: 50px auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="color: #667eea; margin: 0; font-size: 2em;">⭐ 리뷰달기</h2>
+                <button onclick="backToMainFromReview()" class="back-btn">← 메인으로</button>
+            </div>
+            
+            <div class="content-card">
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1em;">가게 선택</label>
+                    <select id="reviewStoreSelect" required style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1em;">
+                        <option value="">가게를 선택하세요</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1em;">별점</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" onclick="setRating(1)" class="star-btn" data-star="1">⭐</button>
+                        <button type="button" onclick="setRating(2)" class="star-btn" data-star="2">⭐</button>
+                        <button type="button" onclick="setRating(3)" class="star-btn" data-star="3">⭐</button>
+                        <button type="button" onclick="setRating(4)" class="star-btn" data-star="4">⭐</button>
+                        <button type="button" onclick="setRating(5)" class="star-btn" data-star="5">⭐</button>
+                    </div>
+                    <span id="ratingDisplay" style="display: block; margin-top: 10px; color: #667eea; font-weight: 600;"></span>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555; font-size: 1.1em;">리뷰 내용</label>
+                    <textarea id="reviewTextarea" required style="width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 1em; min-height: 150px; resize: vertical;"></textarea>
+                </div>
+                
+                <button onclick="submitReview()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    리뷰 등록하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 패널 전환
+        function switchToLogin() {
+            document.getElementById('signupPanel').style.display = 'none';
+            document.getElementById('loginPanel').style.display = 'block';
+            clearMessages();
+        }
+        
+        function switchToSignup() {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('signupPanel').style.display = 'block';
+            clearMessages();
+        }
+        
+        // 모바일용 패널 토글
+        function togglePanel() {
+            if (document.getElementById('signupPanel').style.display === 'block') {
+                switchToLogin();
+            } else {
+                switchToSignup();
+            }
+        }
+        
+        // 메시지 지우기
+        function clearMessages() {
+            document.getElementById('signupMessage').innerHTML = '';
+            document.getElementById('loginMessage').innerHTML = '';
+        }
+        
+        // 메시지 표시
+        function showMessage(panel, message, isError = false) {
+            const messageDiv = document.getElementById(panel + 'Message');
+            const className = isError ? 'error-message' : 'success-message';
+            messageDiv.innerHTML = `<div class="${className}">${message}</div>`;
+        }
+        
+        // 회원가입 처리
+        function handleSignup(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('signupId').value;
+            const pw = document.getElementById('signupPw').value;
+            const pwConfirm = document.getElementById('signupPwConfirm').value;
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            
+            // 비밀번호 확인
+            if (pw !== pwConfirm) {
+                showMessage('signup', '비밀번호가 일치하지 않습니다.', true);
+                return;
+            }
+            
+            // 비밀번호 길이 확인
+            if (pw.length < 6) {
+                showMessage('signup', '비밀번호는 최소 6자 이상이어야 합니다.', true);
+                return;
+            }
+            
+            // 기존 사용자 확인
+            const users = JSON.parse(localStorage.getItem('git2_users') || '[]');
+            const existingUser = users.find(u => u.id === id || u.email === email);
+            
+            if (existingUser) {
+                if (existingUser.id === id) {
+                    showMessage('signup', '이미 존재하는 아이디입니다.', true);
+                } else {
+                    showMessage('signup', '이미 사용 중인 이메일입니다.', true);
+                }
+                return;
+            }
+            
+            // 새 사용자 추가
+            const newUser = {
+                id,
+                pw,
+                name,
+                email,
+                signupDate: new Date().toISOString()
+            };
+            users.push(newUser);
+            localStorage.setItem('git2_users', JSON.stringify(users));
+            
+            showMessage('signup', '회원가입이 완료되었습니다!');
+            document.getElementById('signupForm').reset();
+            
+            // 2초 후 로그인 패널로 전환
+            setTimeout(() => {
+                switchToLogin();
+                showMessage('login', '로그인해주세요.');
+            }, 2000);
+        }
+        
+        // 로그인 처리
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('loginId').value;
+            const pw = document.getElementById('loginPw').value;
+            
+            const users = JSON.parse(localStorage.getItem('git2_users') || '[]');
+            const user = users.find(u => u.id === id && u.pw === pw);
+            
+            if (user) {
+                // 사용자 정보 저장 (비밀번호 제외)
+                const userInfo = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    signupDate: user.signupDate
+                };
+                localStorage.setItem('git2_currentUser', JSON.stringify(userInfo));
+                
+                showMessage('login', '로그인 성공! 메인 화면으로 이동합니다...');
+                document.getElementById('loginForm').reset();
+                
+                // 메인 화면으로 전환
+                setTimeout(() => {
+                    showMainScreen(user.name);
+                }, 1000);
+            } else {
+                showMessage('login', '아이디 또는 비밀번호가 올바르지 않습니다.', true);
+            }
+        }
+        
+        // 로그아웃
+        function logout() {
+            localStorage.removeItem('git2_currentUser');
+            showAuthScreen();
+        }
+        
+        // 메인 화면 표시
+        function showMainScreen(userName) {
+            document.querySelector('.body-wrapper').style.display = 'flex';
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'block';
+            document.getElementById('baeminSection').style.display = 'none';
+            document.getElementById('userNameDisplay').textContent = '👤 ' + userName + '님';
+        }
+        
+        // 인증 화면 표시
+        function showAuthScreen() {
+            document.querySelector('.body-wrapper').style.display = 'flex';
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('baeminSection').style.display = 'none';
+            clearMessages();
+        }
+        
+        // 메뉴 클릭 알림
+        function showAlert(menuName) {
+            event.preventDefault();
+            alert(`${menuName}이 선택되었습니다.`);
+        }
+        
+        // 배민셀프서비스 열기
+        function openBaeminService() {
+            document.querySelector('.body-wrapper').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('baeminSection').style.display = 'block';
+            displayStores(); // 가게 목록 표시
+        }
+        
+        // 배민셀프서비스 콘텐츠 전환
+        function showBaeminContent(type) {
+            event.preventDefault();
+            
+            // 모든 메뉴 비활성화
+            const menuItems = document.querySelectorAll('.sidebar-menu a');
+            menuItems.forEach(item => item.classList.remove('active'));
+            
+            // 현재 클릭한 메뉴 활성화
+            event.target.classList.add('active');
+            
+            // 콘텐츠 표시/숨김
+            const storeContent = document.getElementById('storeContent');
+            const reviewContent = document.getElementById('reviewContent');
+            const contentTitle = document.getElementById('contentTitle');
+            
+            if (type === 'store') {
+                storeContent.style.display = 'block';
+                reviewContent.style.display = 'none';
+                contentTitle.textContent = '가게 현황';
+                displayStores(); // 가게 목록 표시
+            } else if (type === 'review') {
+                storeContent.style.display = 'none';
+                reviewContent.style.display = 'block';
+                contentTitle.textContent = '리뷰 관리';
+                loadReviewManagementData(); // 리뷰 관리 데이터 로드
+            }
+        }
+        
+        // 리뷰 관리 데이터 로드
+        function loadReviewManagementData() {
+            loadStoresForFilter();
+            showAllReviews();
+        }
+        
+        // 필터용 가게 목록 로드
+        function loadStoresForFilter() {
+            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const select = document.getElementById('reviewFilterStoreSelect');
+            
+            // 기존 옵션 제거 (전체 가게 옵션 제외)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // 가게 목록 추가
+            stores.forEach(store => {
+                const option = document.createElement('option');
+                option.value = store.id;
+                option.textContent = store.name;
+                select.appendChild(option);
+            });
+        }
+        
+        // 전체 리뷰 보기
+        function showAllReviews() {
+            // 버튼 스타일 업데이트
+            document.getElementById('allViewBtn').style.background = '#667eea';
+            document.getElementById('allViewBtn').style.color = 'white';
+            document.getElementById('filterViewBtn').style.background = '#e0e0e0';
+            document.getElementById('filterViewBtn').style.color = '#666';
+            
+            // 가게 선택 숨기기
+            document.getElementById('storeFilterSection').style.display = 'none';
+            
+            // 전체 리뷰 표시
+            displayReviews();
+        }
+        
+        // 가게 선택 보기 모드
+        function showFilteredReviews() {
+            // 버튼 스타일 업데이트
+            document.getElementById('allViewBtn').style.background = '#e0e0e0';
+            document.getElementById('allViewBtn').style.color = '#666';
+            document.getElementById('filterViewBtn').style.background = '#667eea';
+            document.getElementById('filterViewBtn').style.color = 'white';
+            
+            // 가게 선택 표시
+            document.getElementById('storeFilterSection').style.display = 'block';
+            
+            // 전체 리뷰 표시
+            displayReviews();
+        }
+        
+        // 가게별 필터링
+        function filterReviewsByStore() {
+            const selectedStoreId = document.getElementById('reviewFilterStoreSelect').value;
+            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            
+            let filteredReviews = reviews;
+            if (selectedStoreId) {
+                filteredReviews = reviews.filter(review => review.storeId === selectedStoreId);
+            }
+            
+            displayFilteredReviews(filteredReviews);
+        }
+        
+        // 리뷰 목록 표시
+        function displayReviews() {
+            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            displayFilteredReviews(reviews);
+        }
+        
+        // 필터링된 리뷰 표시
+        function displayFilteredReviews(reviews) {
+            const reviewList = document.getElementById('reviewList');
+            
+            if (reviews.length === 0) {
+                reviewList.innerHTML = '<p style="color: #999; text-align: center;">등록된 리뷰가 없습니다.</p>';
+                return;
+            }
+            
+            // 날짜 기준 최신순 정렬
+            reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            let html = '<div style="display: grid; gap: 15px;">';
+            reviews.forEach(review => {
+                // 별점 표시
+                let stars = '';
+                for (let i = 0; i < 5; i++) {
+                    if (i < review.rating) {
+                        stars += '⭐';
+                    } else {
+                        stars += '☆';
+                    }
+                }
+                
+                // 답글 표시
+                let repliesHtml = '';
+                if (review.replies && review.replies.length > 0) {
+                    repliesHtml = '<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">';
+                    repliesHtml += '<h6 style="color: #667eea; margin-bottom: 15px; font-size: 1em;">💬 답글 (${review.replies.length})</h6>';
+                    review.replies.forEach(reply => {
+                        const replyContent = (reply.content || '').replace(/\n/g, '<br>');
+                        repliesHtml += `
+                            <div style="background: #f9f9f9; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span style="color: #667eea; font-weight: 600; font-size: 0.9em;">👤 ${reply.userName}</span>
+                                    <span style="color: #999; font-size: 0.85em;">${new Date(reply.createdAt).toLocaleDateString('ko-KR')}</span>
+                                </div>
+                                <p style="color: #333; line-height: 1.5; margin: 0; font-size: 0.95em;">${replyContent}</p>
+                            </div>
+                        `;
+                    });
+                    repliesHtml += '</div>';
+                }
+                
+                html += `
+                    <div style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <h5 style="color: #667eea; margin: 0; font-size: 1.2em;">🏪 ${review.storeName}</h5>
+                            <span style="background: #667eea; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.85em; font-weight: 600;">
+                                ${new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <span style="font-size: 1.2em; margin-right: 10px;">${stars}</span>
+                            <span style="color: #666; font-weight: 600;">${review.rating}점</span>
+                        </div>
+                        <p style="color: #333; line-height: 1.6; margin-bottom: 10px;">${review.content}</p>
+                        <div style="border-top: 1px solid #e0e0e0; padding-top: 10px;">
+                            <span style="color: #999; font-size: 0.9em;">✍️ 작성자: ${review.userName}</span>
+                        </div>
+                        ${repliesHtml}
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button onclick="toggleReplyForm('${review.id}')" style="padding: 8px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                💬 답글달기
+                            </button>
+                            <button onclick="deleteReview('${review.id}')" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                삭제
+                            </button>
+                        </div>
+                        <div id="replyForm_${review.id}" style="display: none; margin-top: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+                            <textarea id="replyText_${review.id}" placeholder="답글을 입력하세요..." style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; min-height: 80px; resize: vertical;"></textarea>
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button onclick="submitReply('${review.id}')" style="flex: 1; padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    등록
+                                </button>
+                                <button onclick="toggleReplyForm('${review.id}')" style="flex: 1; padding: 10px; background: #999; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                    취소
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            reviewList.innerHTML = html;
+        }
+        
+        // 리뷰 삭제
+        function deleteReview(reviewId) {
+            if (confirm('정말 이 리뷰를 삭제하시겠습니까?')) {
+                const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+                const filteredReviews = reviews.filter(review => review.id !== reviewId);
+                localStorage.setItem('git2_reviews', JSON.stringify(filteredReviews));
+                
+                // 현재 모드에 따라 리뷰 목록 갱신
+                if (document.getElementById('storeFilterSection').style.display === 'none') {
+                    displayReviews();
+                } else {
+                    filterReviewsByStore();
+                }
+            }
+        }
+        
+        // 답글 폼 토글
+        function toggleReplyForm(reviewId) {
+            const form = document.getElementById('replyForm_' + reviewId);
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+            } else {
+                form.style.display = 'none';
+                document.getElementById('replyText_' + reviewId).value = '';
+            }
+        }
+        
+        // 답글 등록
+        function submitReply(reviewId) {
+            const replyText = document.getElementById('replyText_' + reviewId).value;
+            
+            if (!replyText.trim()) {
+                alert('답글 내용을 입력해주세요.');
+                return;
+            }
+            
+            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            const currentUser = JSON.parse(localStorage.getItem('git2_currentUser'));
+            
+            const review = reviews.find(r => r.id === reviewId);
+            if (!review) {
+                alert('리뷰를 찾을 수 없습니다.');
+                return;
+            }
+            
+            // 답글 객체 생성
+            const reply = {
+                id: 'REPLY_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                userName: currentUser.name,
+                content: replyText,
+                createdAt: new Date().toISOString()
+            };
+            
+            // 답글 추가
+            if (!review.replies) {
+                review.replies = [];
+            }
+            review.replies.push(reply);
+            
+            // 저장
+            localStorage.setItem('git2_reviews', JSON.stringify(reviews));
+            
+            // 폼 초기화 및 숨기기
+            document.getElementById('replyText_' + reviewId).value = '';
+            document.getElementById('replyForm_' + reviewId).style.display = 'none';
+            
+            // 리뷰 목록 갱신
+            if (document.getElementById('storeFilterSection').style.display === 'none') {
+                displayReviews();
+            } else {
+                filterReviewsByStore();
+            }
+            
+            alert('답글이 등록되었습니다!');
+        }
+        
+        // 메인으로 돌아가기
+        function backToMain() {
+            document.querySelector('.body-wrapper').style.display = 'flex';
+            document.getElementById('baeminSection').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'block';
+        }
+        
+        // 가게 추가 폼 표시
+        function showAddStoreForm() {
+            document.getElementById('addStoreForm').style.display = 'block';
+        }
+        
+        // 가게 추가 취소
+        function cancelAddStore() {
+            document.getElementById('addStoreForm').style.display = 'none';
+            document.getElementById('storeName').value = '';
+        }
+        
+        // 가게 추가
+        function addStore(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('storeName').value;
+            
+            // 가게 목록 가져오기
+            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            
+            // 고유 ID 생성 (현재 시간 기반)
+            const storeId = 'STORE_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 새 가게 추가
+            const newStore = {
+                id: storeId,
+                name: name,
+                createdAt: new Date().toISOString()
+            };
+            
+            stores.push(newStore);
+            localStorage.setItem('git2_stores', JSON.stringify(stores));
+            
+            // 폼 초기화 및 숨기기
+            cancelAddStore();
+            
+            // 목록 새로고침
+            displayStores();
+            
+            alert('가게가 추가되었습니다!\n가게 ID: ' + storeId);
+        }
+        
+        // 가게 목록 표시
+        function displayStores() {
+            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const storeList = document.getElementById('storeList');
+            
+            if (stores.length === 0) {
+                storeList.innerHTML = '<p style="color: #999; text-align: center;">등록된 가게가 없습니다.</p>';
+                return;
+            }
+            
+            let html = '<div style="display: grid; gap: 15px;">';
+            stores.forEach(store => {
+                html += `
+                    <div style="border: 2px solid #e0e0e0; border-radius: 10px; padding: 20px; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                            <h5 style="color: #667eea; margin: 0; font-size: 1.2em;">${store.name}</h5>
+                            <span style="background: #667eea; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.85em; font-weight: 600;">
+                                ID: ${store.id}
+                            </span>
+                        </div>
+                        <button onclick="deleteStore('${store.id}')" style="margin-top: 10px; padding: 5px 15px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            삭제
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            storeList.innerHTML = html;
+        }
+        
+        // 가게 삭제
+        function deleteStore(storeId) {
+            if (confirm('정말 이 가게를 삭제하시겠습니까?')) {
+                const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+                const filteredStores = stores.filter(store => store.id !== storeId);
+                localStorage.setItem('git2_stores', JSON.stringify(filteredStores));
+                displayStores();
+            }
+        }
+        
+        // 리뷰달기 페이지 열기
+        function openReviewPage() {
+            document.querySelector('.body-wrapper').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'none';
+            document.getElementById('reviewSection').style.display = 'block';
+            loadStoresForReview();
+        }
+        
+        // 리뷰를 위한 가게 목록 로드
+        function loadStoresForReview() {
+            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const select = document.getElementById('reviewStoreSelect');
+            
+            // 기존 옵션 제거 (기본 옵션 제외)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // 가게 목록 추가
+            stores.forEach(store => {
+                const option = document.createElement('option');
+                option.value = store.id;
+                option.textContent = store.name;
+                select.appendChild(option);
+            });
+        }
+        
+        // 리뷰 감정 분석 함수
+        function analyzeReviewSentiment(content, rating) {
+            const positiveKeywords = ['좋아', '맛있', '훌륭', '완벽', '최고', '최고의', '추천', '감사', '감동', '친절', '깔끔', '신선'];
+            const negativeKeywords = ['별로', '느려', '불친절', '불만', '비위생', '불만족', '환불', '실망', '나쁘', '최악', '불편'];
+            
+            const contentLower = content.toLowerCase();
+            
+            // 별점이 낮으면 부정적으로 판단
+            if (rating <= 2) {
+                return 'negative';
+            }
+            
+            // 별점이 높으면 긍정적으로 판단
+            if (rating >= 4) {
+                return 'positive';
+            }
+            
+            // 키워드 분석
+            let positiveCount = 0;
+            let negativeCount = 0;
+            
+            positiveKeywords.forEach(keyword => {
+                if (contentLower.includes(keyword)) {
+                    positiveCount++;
+                }
+            });
+            
+            negativeKeywords.forEach(keyword => {
+                if (contentLower.includes(keyword)) {
+                    negativeCount++;
+                }
+            });
+            
+            if (positiveCount > negativeCount) {
+                return 'positive';
+            } else if (negativeCount > positiveCount) {
+                return 'negative';
+            }
+            
+            return 'neutral';
+        }
+        
+        // 감정별 자동 답글 생성
+        function generateSmartReply(content, rating) {
+            const sentiment = analyzeReviewSentiment(content, rating);
+            
+            const replies = {
+                positive: [
+                    '감사합니다! 좋은 평가 주셔서 진심으로 감사드립니다. 더욱 노력하겠습니다! 🙏',
+                    '고객님의 만족이 저희의 보람입니다. 언제나 최선을 다하겠습니다. 감사합니다! 😊',
+                    '좋은 말씀 감사드립니다. 앞으로도 좋은 서비스 제공하겠습니다! 🙌',
+                    '행복한 식사가 되셨다니 기쁩니다. 항상 감사합니다! ❤️'
+                ],
+                neutral: [
+                    '리뷰 남겨주셔서 감사합니다. 더 나은 서비스로 보답하겠습니다! 🙏',
+                    '언제나 최선을 다하겠습니다. 관심 가져주셔서 감사합니다! 😊',
+                    '소중한 의견 감사드립니다. 계속 개선해나가겠습니다! 🙌'
+                ],
+                negative: [
+                    '불편을 드려 죄송합니다. 소중한 의견을 반영하여 개선하겠습니다. 🙏',
+                    '고객님의 피드백이 저희에게 큰 도움이 됩니다. 즉시 개선하겠습니다. 😔',
+                    '불편을 드려 정말 죄송합니다. 더 나은 서비스를 위해 노력하겠습니다. 🙏',
+                    '소중한 지적 감사드립니다. 바로 조치하여 개선하겠습니다. 😊'
+                ]
+            };
+            
+            const repliesForSentiment = replies[sentiment];
+            const randomIndex = Math.floor(Math.random() * repliesForSentiment.length);
+            return repliesForSentiment[randomIndex];
+        }
+        
+        // 2차 답글 스케줄링 함수 (git2 리뷰 - 리뷰 작성 시)
+        function scheduleSecondReplyForGit2InReview(review) {
+            const secondReplyDelay = localStorage.getItem('secondReplyDelay');
+            const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
+            const secondReplyText = localStorage.getItem('secondReplyText');
+            
+            if (!secondReplyDelay) {
+                return;
+            }
+            
+            const delayMinutes = parseInt(secondReplyDelay);
+            if (!delayMinutes || delayMinutes <= 0) {
+                return;
+            }
+            
+            // 가게별 문구가 있으면 우선 사용, 없으면 전체 문구 사용
+            const text = storeSecondReplies[review.storeId] || secondReplyText;
+            if (!text) {
+                return;
+            }
+            
+            review.pendingSecondReply = {
+                text: text.trim(),
+                delayMinutes: delayMinutes,
+                scheduledTime: Date.now() + (delayMinutes * 60 * 1000)
+            };
+        }
+        
+        // 별점 설정
+        let selectedRating = 0;
+        function setRating(rating) {
+            selectedRating = rating;
+            const display = document.getElementById('ratingDisplay');
+            display.textContent = selectedRating + '점';
+            
+            // 별점 버튼 업데이트
+            const starButtons = document.querySelectorAll('.star-btn');
+            starButtons.forEach((btn, index) => {
+                if (index < rating) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // 리뷰 등록
+        function submitReview() {
+            const storeId = document.getElementById('reviewStoreSelect').value;
+            const reviewText = document.getElementById('reviewTextarea').value;
+            
+            if (!storeId) {
+                alert('가게를 선택해주세요.');
+                return;
+            }
+            
+            if (selectedRating === 0) {
+                alert('별점을 선택해주세요.');
+                return;
+            }
+            
+            if (!reviewText.trim()) {
+                alert('리뷰 내용을 입력해주세요.');
+                return;
+            }
+            
+            // 리뷰 저장
+            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            const currentUser = JSON.parse(localStorage.getItem('git2_currentUser'));
+            
+            const now = Date.now();
+            const newReview = {
+                id: 'REVIEW_' + now + '_' + Math.random().toString(36).substr(2, 9),
+                storeId: storeId,
+                storeName: document.getElementById('reviewStoreSelect').selectedOptions[0].text,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                rating: selectedRating,
+                content: reviewText,
+                createdAt: new Date().toISOString(),
+                replies: []
+            };
+            
+            // 자동 답글 설정 정보 확인 (토글이 ON이고 설정된 경우)
+            const autoReplyEnabled = localStorage.getItem('autoReplyEnabled');
+            const storeAutoReplies = JSON.parse(localStorage.getItem('storeAutoReplies') || '{}');
+            const autoReplyDelay = localStorage.getItem('autoReplyDelay');
+            
+            // 가게별 문구가 있으면 우선 사용, 없으면 전체 문구 사용
+            let autoReplyText = storeAutoReplies[storeId] || localStorage.getItem('autoReplyText');
+            
+            const aiReplyEnabled = localStorage.getItem('aiReplyEnabled') === 'true';
+            
+            // 감정 기반 자동 답글이 활성화되어 있으면 무조건 달기
+            if (aiReplyEnabled) {
+                const aiReply = generateSmartReply(reviewText, selectedRating);
+                
+                if (autoReplyEnabled === 'true' && autoReplyText && autoReplyText.trim() !== '') {
+                    // 고정 문구도 있으면 함께 추가
+                    const replyContent = aiReply + '\n\n' + autoReplyText.trim();
+                    const delayMinutes = autoReplyDelay !== null ? parseInt(autoReplyDelay) : null;
+                    
+                    if (delayMinutes === 0) {
+                        // 지연시간이 0이면 즉시 답글 추가
+                        newReview.replies.push({
+                            id: now + Math.random(),
+                            userName: '관리자',
+                            content: replyContent,
+                            createdAt: new Date().toISOString(),
+                            isAuto: true
+                        });
+                        
+                        // 즉시 답글 추가 후 2차 답글 스케줄링
+                        scheduleSecondReplyForGit2InReview(newReview);
+                    } else if (delayMinutes !== null) {
+                        // 지연시간이 있으면 pendingAutoReply에 저장
+                        newReview.pendingAutoReply = {
+                            text: replyContent,
+                            delayMinutes: delayMinutes,
+                            scheduledTime: now + (delayMinutes * 60 * 1000)
+                        };
+                    }
+                } else {
+                    // 고정 문구가 없으면 감정 기반 답글만 추가
+                    newReview.replies.push({
+                        id: now + Math.random(),
+                        userName: '관리자',
+                        content: aiReply,
+                        createdAt: new Date().toISOString(),
+                        isAuto: true,
+                        isAI: true
+                    });
+                }
+            } else if (autoReplyEnabled === 'true' && autoReplyText && autoReplyText.trim() !== '') {
+                // 자동 답글이 활성화되어 있고 감정 기반 자동 답글이 없을 때
+                const delayMinutes = autoReplyDelay !== null ? parseInt(autoReplyDelay) : null;
+                
+                if (delayMinutes === 0) {
+                    // 지연시간이 0이면 즉시 답글 추가
+                    newReview.replies.push({
+                        id: now + Math.random(),
+                        userName: '관리자',
+                        content: autoReplyText.trim(),
+                        createdAt: new Date().toISOString(),
+                        isAuto: true
+                    });
+                    
+                    // 즉시 답글 추가 후 2차 답글 스케줄링
+                    scheduleSecondReplyForGit2InReview(newReview);
+                } else if (delayMinutes !== null) {
+                    // 지연시간이 있으면 pendingAutoReply에 저장
+                    newReview.pendingAutoReply = {
+                        text: autoReplyText.trim(),
+                        delayMinutes: delayMinutes,
+                        scheduledTime: now + (delayMinutes * 60 * 1000)
+                    };
+                }
+            }
+            
+            reviews.push(newReview);
+            localStorage.setItem('git2_reviews', JSON.stringify(reviews));
+            
+            alert('리뷰가 등록되었습니다!');
+            
+            // 폼 초기화
+            document.getElementById('reviewStoreSelect').value = '';
+            document.getElementById('reviewTextarea').value = '';
+            selectedRating = 0;
+            document.getElementById('ratingDisplay').textContent = '';
+            document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('active'));
+        }
+        
+        // 리뷰 페이지에서 메인으로 돌아가기
+        function backToMainFromReview() {
+            document.querySelector('.body-wrapper').style.display = 'flex';
+            document.getElementById('reviewSection').style.display = 'none';
+            document.getElementById('mainSection').style.display = 'block';
+        }
+        
+        // 페이지 로드 시 로그인 상태 확인
+        window.onload = function() {
+            const currentUser = localStorage.getItem('git2_currentUser');
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                showMainScreen(user.name);
+            } else {
+                showAuthScreen();
+            }
+        };
+    </script>
+</body>
+</html>
+
