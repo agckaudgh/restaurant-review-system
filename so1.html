@@ -304,18 +304,26 @@
                 replies: [] // 답글 배열 초기화
             };
             
-            // localStorage에 저장 (기존 리뷰들 가져오기)
+            // localStorage에 저장 (기존 리뷰들 가져오기 - 메인 아이디별로 분리)
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            const currentUserObj = JSON.parse(currentUser);
+            const mainUserId = currentUserObj.id;
+            
             let reviews = [];
-            const storedReviews = localStorage.getItem('reviews');
+            const storedReviews = localStorage.getItem(`reviews_${mainUserId}`);
             if (storedReviews) {
                 reviews = JSON.parse(storedReviews);
             }
             
-            // 자동 답글 설정 정보 저장 (토글이 ON이고 설정된 경우)
-            const autoReplyEnabled = localStorage.getItem('autoReplyEnabled');
-            const autoReplyText = localStorage.getItem('autoReplyText');
-            const autoReplyDelay = localStorage.getItem('autoReplyDelay');
-            const aiReplyEnabled = localStorage.getItem('aiReplyEnabled') === 'true';
+            // 자동 답글 설정 정보 저장 (토글이 ON이고 설정된 경우 - 메인 아이디별로 분리)
+            const autoReplyEnabled = localStorage.getItem(`autoReplyEnabled_${mainUserId}`);
+            const autoReplyText = localStorage.getItem(`autoReplyText_${mainUserId}`);
+            const autoReplyDelay = localStorage.getItem(`autoReplyDelay_${mainUserId}`);
+            const aiReplyEnabled = localStorage.getItem(`aiReplyEnabled_${mainUserId}`) === 'true';
             
             // 감정 기반 자동 답글이 활성화되어 있으면 무조건 달기
             if (aiReplyEnabled) {
@@ -383,9 +391,9 @@
                 }
             }
             
-            // 새 리뷰 추가
+            // 새 리뷰 추가 (메인 아이디별로 분리)
             reviews.unshift(reviewData); // 최신 리뷰가 위에 오도록
-            localStorage.setItem('reviews', JSON.stringify(reviews));
+            localStorage.setItem(`reviews_${mainUserId}`, JSON.stringify(reviews));
             
             alert('리뷰가 작성되었습니다!\n\n평점: ' + selectedRating + '점\n\n리뷰 내용:\n' + reviewContent);
             

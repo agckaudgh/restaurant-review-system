@@ -848,6 +848,11 @@
             document.getElementById('mainSection').style.display = 'block';
             document.getElementById('baeminSection').style.display = 'none';
             document.getElementById('userNameDisplay').textContent = '👤 ' + userName + '님';
+            
+            // 배민셀프서비스가 열려있으면 가게 목록 새로고침
+            if (document.getElementById('baeminSection').style.display === 'block') {
+                displayStores();
+            }
         }
         
         // 인증 화면 표시
@@ -910,7 +915,10 @@
         
         // 필터용 가게 목록 로드
         function loadStoresForFilter() {
-            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
+            const stores = JSON.parse(localStorage.getItem(`git2_stores_${userId}`) || '[]');
             const select = document.getElementById('reviewFilterStoreSelect');
             
             // 기존 옵션 제거 (전체 가게 옵션 제외)
@@ -959,8 +967,11 @@
         
         // 가게별 필터링
         function filterReviewsByStore() {
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
             const selectedStoreId = document.getElementById('reviewFilterStoreSelect').value;
-            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            const reviews = JSON.parse(localStorage.getItem(`git2_reviews_${userId}`) || '[]');
             
             let filteredReviews = reviews;
             if (selectedStoreId) {
@@ -972,7 +983,10 @@
         
         // 리뷰 목록 표시
         function displayReviews() {
-            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
+            const reviews = JSON.parse(localStorage.getItem(`git2_reviews_${userId}`) || '[]');
             displayFilteredReviews(reviews);
         }
         
@@ -1066,9 +1080,12 @@
         // 리뷰 삭제
         function deleteReview(reviewId) {
             if (confirm('정말 이 리뷰를 삭제하시겠습니까?')) {
-                const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+                const userId = getCurrentUserId();
+                if (!userId) return;
+                
+                const reviews = JSON.parse(localStorage.getItem(`git2_reviews_${userId}`) || '[]');
                 const filteredReviews = reviews.filter(review => review.id !== reviewId);
-                localStorage.setItem('git2_reviews', JSON.stringify(filteredReviews));
+                localStorage.setItem(`git2_reviews_${userId}`, JSON.stringify(filteredReviews));
                 
                 // 현재 모드에 따라 리뷰 목록 갱신
                 if (document.getElementById('storeFilterSection').style.display === 'none') {
@@ -1099,7 +1116,10 @@
                 return;
             }
             
-            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
+            const reviews = JSON.parse(localStorage.getItem(`git2_reviews_${userId}`) || '[]');
             const currentUser = JSON.parse(localStorage.getItem('git2_currentUser'));
             
             const review = reviews.find(r => r.id === reviewId);
@@ -1123,7 +1143,7 @@
             review.replies.push(reply);
             
             // 저장
-            localStorage.setItem('git2_reviews', JSON.stringify(reviews));
+            localStorage.setItem(`git2_reviews_${userId}`, JSON.stringify(reviews));
             
             // 폼 초기화 및 숨기기
             document.getElementById('replyText_' + reviewId).value = '';
@@ -1157,14 +1177,28 @@
             document.getElementById('storeName').value = '';
         }
         
+        // 현재 로그인한 사용자의 아이디 가져오기
+        function getCurrentUserId() {
+            const currentUser = localStorage.getItem('git2_currentUser');
+            if (!currentUser) return null;
+            const user = JSON.parse(currentUser);
+            return user.id;
+        }
+        
         // 가게 추가
         function addStore(event) {
             event.preventDefault();
             
+            const userId = getCurrentUserId();
+            if (!userId) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
             const name = document.getElementById('storeName').value;
             
-            // 가게 목록 가져오기
-            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            // 현재 사용자의 가게 목록 가져오기
+            const stores = JSON.parse(localStorage.getItem(`git2_stores_${userId}`) || '[]');
             
             // 고유 ID 생성 (현재 시간 기반)
             const storeId = 'STORE_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -1177,7 +1211,7 @@
             };
             
             stores.push(newStore);
-            localStorage.setItem('git2_stores', JSON.stringify(stores));
+            localStorage.setItem(`git2_stores_${userId}`, JSON.stringify(stores));
             
             // 폼 초기화 및 숨기기
             cancelAddStore();
@@ -1190,7 +1224,18 @@
         
         // 가게 목록 표시
         function displayStores() {
-            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const userId = getCurrentUserId();
+            if (!userId) {
+                const storeList = document.getElementById('storeList');
+                if (storeList) {
+                    storeList.innerHTML = '<p style="color: #999; text-align: center;">로그인이 필요합니다.</p>';
+                }
+                return;
+            }
+            
+            // 현재 로그인한 아이디의 가게 목록만 조회
+            const storageKey = `git2_stores_${userId}`;
+            const stores = JSON.parse(localStorage.getItem(storageKey) || '[]');
             const storeList = document.getElementById('storeList');
             
             if (stores.length === 0) {
@@ -1221,9 +1266,12 @@
         // 가게 삭제
         function deleteStore(storeId) {
             if (confirm('정말 이 가게를 삭제하시겠습니까?')) {
-                const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+                const userId = getCurrentUserId();
+                if (!userId) return;
+                
+                const stores = JSON.parse(localStorage.getItem(`git2_stores_${userId}`) || '[]');
                 const filteredStores = stores.filter(store => store.id !== storeId);
-                localStorage.setItem('git2_stores', JSON.stringify(filteredStores));
+                localStorage.setItem(`git2_stores_${userId}`, JSON.stringify(filteredStores));
                 displayStores();
             }
         }
@@ -1238,7 +1286,10 @@
         
         // 리뷰를 위한 가게 목록 로드
         function loadStoresForReview() {
-            const stores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
+            const stores = JSON.parse(localStorage.getItem(`git2_stores_${userId}`) || '[]');
             const select = document.getElementById('reviewStoreSelect');
             
             // 기존 옵션 제거 (기본 옵션 제외)
@@ -1328,9 +1379,12 @@
         
         // 2차 답글 스케줄링 함수 (git2 리뷰 - 리뷰 작성 시)
         function scheduleSecondReplyForGit2InReview(review) {
-            const secondReplyDelay = localStorage.getItem('secondReplyDelay');
-            const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
-            const secondReplyText = localStorage.getItem('secondReplyText');
+            const userId = getCurrentUserId();
+            if (!userId) return;
+            
+            const secondReplyDelay = localStorage.getItem(`secondReplyDelay_${userId}`);
+            const storeSecondReplies = JSON.parse(localStorage.getItem(`storeSecondReplies_${userId}`) || '{}');
+            const secondReplyText = localStorage.getItem(`secondReplyText_${userId}`);
             
             if (!secondReplyDelay) {
                 return;
@@ -1393,8 +1447,9 @@
             }
             
             // 리뷰 저장
-            const reviews = JSON.parse(localStorage.getItem('git2_reviews') || '[]');
             const currentUser = JSON.parse(localStorage.getItem('git2_currentUser'));
+            const userId = currentUser.id;
+            const reviews = JSON.parse(localStorage.getItem(`git2_reviews_${userId}`) || '[]');
             
             const now = Date.now();
             const newReview = {
@@ -1409,15 +1464,15 @@
                 replies: []
             };
             
-            // 자동 답글 설정 정보 확인 (토글이 ON이고 설정된 경우)
-            const autoReplyEnabled = localStorage.getItem('autoReplyEnabled');
-            const storeAutoReplies = JSON.parse(localStorage.getItem('storeAutoReplies') || '{}');
-            const autoReplyDelay = localStorage.getItem('autoReplyDelay');
+            // 자동 답글 설정 정보 확인 (토글이 ON이고 설정된 경우) - 아이디별로 분리
+            const autoReplyEnabled = localStorage.getItem(`autoReplyEnabled_${userId}`);
+            const storeAutoReplies = JSON.parse(localStorage.getItem(`storeAutoReplies_${userId}`) || '{}');
+            const autoReplyDelay = localStorage.getItem(`autoReplyDelay_${userId}`);
             
             // 가게별 문구가 있으면 우선 사용, 없으면 전체 문구 사용
-            let autoReplyText = storeAutoReplies[storeId] || localStorage.getItem('autoReplyText');
+            let autoReplyText = storeAutoReplies[storeId] || localStorage.getItem(`autoReplyText_${userId}`);
             
-            const aiReplyEnabled = localStorage.getItem('aiReplyEnabled') === 'true';
+            const aiReplyEnabled = localStorage.getItem(`aiReplyEnabled_${userId}`) === 'true';
             
             // 감정 기반 자동 답글이 활성화되어 있으면 무조건 달기
             if (aiReplyEnabled) {
@@ -1486,7 +1541,7 @@
             }
             
             reviews.push(newReview);
-            localStorage.setItem('git2_reviews', JSON.stringify(reviews));
+            localStorage.setItem(`git2_reviews_${userId}`, JSON.stringify(reviews));
             
             alert('리뷰가 등록되었습니다!');
             
@@ -1511,6 +1566,14 @@
             if (currentUser) {
                 const user = JSON.parse(currentUser);
                 showMainScreen(user.name);
+                
+                // 배민셀프서비스가 이미 열려있으면 가게 목록 새로고침
+                setTimeout(() => {
+                    if (document.getElementById('baeminSection').style.display === 'block') {
+                        displayStores();
+                        loadReviewManagementData();
+                    }
+                }, 100);
             } else {
                 showAuthScreen();
             }

@@ -273,22 +273,22 @@
         
         <h1>🏠 메인 메뉴</h1>
         <div class="menu-grid">
-            <a href="som.html" class="menu-item">
+            <div class="menu-item" onclick="checkLoginAndNavigate('som.html')">
                 <div class="menu-number">1</div>
                 <div class="menu-label">리뷰모음</div>
-            </a>
-            <a href="so3.html" class="menu-item">
+            </div>
+            <div class="menu-item" onclick="checkLoginAndNavigate('so3.html')">
                 <div class="menu-number">2</div>
                 <div class="menu-label">2차답글 등록</div>
-            </a>
-            <a href="so4.html" class="menu-item">
+            </div>
+            <div class="menu-item" onclick="checkLoginAndNavigate('so4.html')">
                 <div class="menu-number">3</div>
                 <div class="menu-label">가게 연결</div>
-            </a>
-            <a href="so5.html" class="menu-item">
+            </div>
+            <div class="menu-item" onclick="checkLoginAndNavigate('so5.html')">
                 <div class="menu-number">4</div>
                 <div class="menu-label">배달의민족</div>
-            </a>
+            </div>
         </div>
     </div>
     
@@ -420,9 +420,23 @@
         
         // 로그아웃
         function logout() {
+            // 배달의민족 로그인 정보는 삭제하지 않음 (메인 아이디별로 저장되어 있으므로 유지)
             localStorage.removeItem('currentUser');
             alert('로그아웃되었습니다.');
             checkLoginStatus();
+        }
+        
+        // 로그인 확인 후 페이지 이동
+        function checkLoginAndNavigate(page) {
+            const currentUser = localStorage.getItem('currentUser');
+            if (currentUser) {
+                // 로그인 되어 있으면 페이지 이동 (캐시 무시)
+                window.location.href = page + '?t=' + Date.now();
+            } else {
+                // 로그인 안 되어 있으면 로그인 모달 표시
+                alert('로그인이 필요한 서비스입니다. 로그인해주세요.');
+                openModal('login');
+            }
         }
         
         // 모달 외부 클릭 시 닫기

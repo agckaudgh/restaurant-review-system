@@ -492,16 +492,33 @@
         
         // 지연된 자동 답글 체크 함수
         function checkPendingAutoReplies() {
-            const storedReviews = localStorage.getItem('reviews');
-            const storedGit2Reviews = localStorage.getItem('git2_reviews');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+            const mainUser = localStorage.getItem('currentUser');
+            let mainUserId = null;
+            let connectedStores = [];
+            let git2UserId = null;
+            
+            if (mainUser) {
+                const mainUserObj = JSON.parse(mainUser);
+                mainUserId = mainUserObj.id;
+                const git2User = localStorage.getItem(`git2_currentUser_${mainUserId}`);
+                
+                if (git2User) {
+                    const git2UserObj = JSON.parse(git2User);
+                    git2UserId = git2UserObj.id;
+                    connectedStores = JSON.parse(localStorage.getItem(`so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`) || '[]');
+                }
+            }
+            
+            const storedReviews = mainUserId ? localStorage.getItem(`reviews_${mainUserId}`) : null;
+            const storedGit2Reviews = git2UserId ? localStorage.getItem(`git2_reviews_${git2UserId}`) : null;
             
             let hasChanges = false;
             let git2HasChanges = false;
             const now = Date.now();
             
             // 일반 리뷰 체크
-            if (storedReviews) {
+            if (storedReviews && mainUserId) {
                 const reviews = JSON.parse(storedReviews);
                 reviews.forEach(review => {
                     // 1차 자동 답글 체크
@@ -549,7 +566,7 @@
                 });
                 
                 if (hasChanges) {
-                    localStorage.setItem('reviews', JSON.stringify(reviews));
+                    localStorage.setItem(`reviews_${mainUserId}`, JSON.stringify(reviews));
                 }
             }
             
@@ -603,8 +620,8 @@
                     }
                 });
                 
-                if (git2HasChanges) {
-                    localStorage.setItem('git2_reviews', JSON.stringify(git2Reviews));
+                if (git2HasChanges && git2UserId) {
+                    localStorage.setItem(`git2_reviews_${git2UserId}`, JSON.stringify(git2Reviews));
                 }
             }
             
@@ -615,9 +632,17 @@
         
         // 2차 답글 스케줄링 함수 (일반 리뷰)
         function scheduleSecondReply(review) {
-            const secondReplyDelay = localStorage.getItem('secondReplyDelay');
-            const secondReplyText = localStorage.getItem('secondReplyText');
-            const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
+            const secondReplyDelay = localStorage.getItem(`secondReplyDelay_${userId}`);
+            const secondReplyText = localStorage.getItem(`secondReplyText_${userId}`);
+            const storeSecondReplies = JSON.parse(localStorage.getItem(`storeSecondReplies_${userId}`) || '{}');
             
             if (!secondReplyDelay || !secondReplyText) {
                 return;
@@ -637,9 +662,17 @@
         
         // 2차 답글 스케줄링 함수 (git2 리뷰)
         function scheduleSecondReplyForGit2(review) {
-            const secondReplyDelay = localStorage.getItem('secondReplyDelay');
-            const storeSecondReplies = JSON.parse(localStorage.getItem('storeSecondReplies') || '{}');
-            const secondReplyText = localStorage.getItem('secondReplyText');
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
+            const secondReplyDelay = localStorage.getItem(`secondReplyDelay_${userId}`);
+            const storeSecondReplies = JSON.parse(localStorage.getItem(`storeSecondReplies_${userId}`) || '{}');
+            const secondReplyText = localStorage.getItem(`secondReplyText_${userId}`);
             
             if (!secondReplyDelay) {
                 return;
@@ -688,10 +721,27 @@
             
             const container = document.getElementById('reviewsContainer');
             
-            // localStorage에서 리뷰 가져오기
-            const storedReviews = localStorage.getItem('reviews');
-            const storedGit2Reviews = localStorage.getItem('git2_reviews');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인
+            const mainUser = localStorage.getItem('currentUser');
+            let mainUserId = null;
+            let connectedStores = [];
+            let git2UserId = null;
+            
+            if (mainUser) {
+                const mainUserObj = JSON.parse(mainUser);
+                mainUserId = mainUserObj.id;
+                const git2User = localStorage.getItem(`git2_currentUser_${mainUserId}`);
+                
+                if (git2User) {
+                    const git2UserObj = JSON.parse(git2User);
+                    git2UserId = git2UserObj.id;
+                    connectedStores = JSON.parse(localStorage.getItem(`so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`) || '[]');
+                }
+            }
+            
+            // localStorage에서 리뷰 가져오기 (메인 아이디별로 분리)
+            const storedReviews = mainUserId ? localStorage.getItem(`reviews_${mainUserId}`) : null;
+            const storedGit2Reviews = git2UserId ? localStorage.getItem(`git2_reviews_${git2UserId}`) : null;
             
             let reviews = [];
             
@@ -830,7 +880,14 @@
             
             if (isGit2Review) {
                 // git2 리뷰인 경우
-                const storedGit2Reviews = localStorage.getItem('git2_reviews');
+                const mainUser = localStorage.getItem('currentUser');
+                if (!mainUser) return;
+                const mainUserObj = JSON.parse(mainUser);
+                const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+                if (!git2User) return;
+                
+                const git2UserObj = JSON.parse(git2User);
+                const storedGit2Reviews = localStorage.getItem(`git2_reviews_${git2UserObj.id}`);
                 if (!storedGit2Reviews) return;
                 
                 const git2Reviews = JSON.parse(storedGit2Reviews);
@@ -846,10 +903,14 @@
                 review.replies.push(replyData);
                 
                 // localStorage에 저장
-                localStorage.setItem('git2_reviews', JSON.stringify(git2Reviews));
+                localStorage.setItem(`git2_reviews_${git2UserObj.id}`, JSON.stringify(git2Reviews));
             } else {
                 // 일반 리뷰인 경우
-                const storedReviews = localStorage.getItem('reviews');
+                const mainUser = localStorage.getItem('currentUser');
+                if (!mainUser) return;
+                
+                const mainUserObj = JSON.parse(mainUser);
+                const storedReviews = localStorage.getItem(`reviews_${mainUserObj.id}`);
                 if (!storedReviews) return;
                 
                 const reviews = JSON.parse(storedReviews);
@@ -864,8 +925,8 @@
                 }
                 review.replies.push(replyData);
                 
-                // localStorage에 저장
-                localStorage.setItem('reviews', JSON.stringify(reviews));
+                // localStorage에 저장 (메인 아이디별로 분리)
+                localStorage.setItem(`reviews_${mainUserObj.id}`, JSON.stringify(reviews));
             }
             
             // UI 새로고침
@@ -877,6 +938,20 @@
         
         // 자동 답글 고정 문구 저장 함수
         function saveAutoReply() {
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) {
+                alert('배달의민족 로그인이 필요합니다.');
+                return;
+            }
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
             const autoReplyText = document.getElementById('autoReplyText').value.trim();
             const selectedStore = document.getElementById('storeSelect').value;
             
@@ -887,12 +962,12 @@
             
             if (selectedStore === 'ALL') {
                 // 전체 가게용
-                localStorage.setItem('autoReplyText', autoReplyText);
+                localStorage.setItem(`autoReplyText_${userId}`, autoReplyText);
             } else {
                 // 특정 가게용
-                const storeAutoReplies = JSON.parse(localStorage.getItem('storeAutoReplies') || '{}');
+                const storeAutoReplies = JSON.parse(localStorage.getItem(`storeAutoReplies_${userId}`) || '{}');
                 storeAutoReplies[selectedStore] = autoReplyText;
-                localStorage.setItem('storeAutoReplies', JSON.stringify(storeAutoReplies));
+                localStorage.setItem(`storeAutoReplies_${userId}`, JSON.stringify(storeAutoReplies));
             }
             
             document.getElementById('currentSetting').textContent = autoReplyText;
@@ -902,13 +977,21 @@
         
         // 자동 답글 고정 문구 로드 함수
         function loadStoreAutoReply() {
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
             const selectedStore = document.getElementById('storeSelect').value;
             
             if (selectedStore === 'ALL') {
-                const storedAutoReply = localStorage.getItem('autoReplyText');
+                const storedAutoReply = localStorage.getItem(`autoReplyText_${userId}`);
                 document.getElementById('currentSetting').textContent = storedAutoReply || '없음';
             } else {
-                const storeAutoReplies = JSON.parse(localStorage.getItem('storeAutoReplies') || '{}');
+                const storeAutoReplies = JSON.parse(localStorage.getItem(`storeAutoReplies_${userId}`) || '{}');
                 document.getElementById('currentSetting').textContent = storeAutoReplies[selectedStore] || '없음';
             }
         }
@@ -920,8 +1003,24 @@
         
         // 가게 목록 로드 함수
         function loadStoreList() {
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
-            const allStores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                return; // 메인 로그인이 없으면 가게 목록 표시 안 함
+            }
+            
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            
+            if (!git2User) {
+                return; // 배달의민족 로그인이 없으면 가게 목록 표시 안 함
+            }
+            
+            // 메인 아이디 + 배달의민족 아이디 조합으로 저장/조회
+            const git2UserObj = JSON.parse(git2User);
+            const connectedStores = JSON.parse(localStorage.getItem(`so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`) || '[]');
+            // 배달의민족 아이디별 가게 목록 조회
+            const allStores = JSON.parse(localStorage.getItem(`git2_stores_${git2UserObj.id}`) || '[]');
             const select = document.getElementById('storeSelect');
             
             // 기존 옵션 제거 (전체 가게 제외)
@@ -943,6 +1042,14 @@
         
         // 자동 답글 토글 함수
         function toggleAutoReply() {
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
             const toggle = document.getElementById('autoReplyToggle');
             const status = document.getElementById('toggleStatus');
             
@@ -950,18 +1057,26 @@
                 status.textContent = 'ON';
                 status.classList.remove('inactive');
                 status.classList.add('active');
-                localStorage.setItem('autoReplyEnabled', 'true');
+                localStorage.setItem(`autoReplyEnabled_${userId}`, 'true');
             } else {
                 status.textContent = 'OFF';
                 status.classList.remove('active');
                 status.classList.add('inactive');
-                localStorage.setItem('autoReplyEnabled', 'false');
+                localStorage.setItem(`autoReplyEnabled_${userId}`, 'false');
             }
         }
         
         // 자동 답글 토글 상태 로드 함수
         function loadToggleState() {
-            const enabled = localStorage.getItem('autoReplyEnabled');
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
+            const enabled = localStorage.getItem(`autoReplyEnabled_${userId}`);
             const toggle = document.getElementById('autoReplyToggle');
             const status = document.getElementById('toggleStatus');
             
@@ -980,6 +1095,14 @@
         
         // 감정 기반 자동 답글 토글 함수
         function toggleAIReply() {
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
             const toggle = document.getElementById('aiReplyToggle');
             const status = document.getElementById('aiToggleStatus');
             
@@ -987,18 +1110,26 @@
                 status.textContent = 'ON';
                 status.classList.remove('inactive');
                 status.classList.add('active');
-                localStorage.setItem('aiReplyEnabled', 'true');
+                localStorage.setItem(`aiReplyEnabled_${userId}`, 'true');
             } else {
                 status.textContent = 'OFF';
                 status.classList.remove('active');
                 status.classList.add('inactive');
-                localStorage.setItem('aiReplyEnabled', 'false');
+                localStorage.setItem(`aiReplyEnabled_${userId}`, 'false');
             }
         }
         
         // 감정 기반 자동 답글 토글 상태 로드 함수
         function loadAIToggleState() {
-            const enabled = localStorage.getItem('aiReplyEnabled');
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
+            const enabled = localStorage.getItem(`aiReplyEnabled_${userId}`);
             const toggle = document.getElementById('aiReplyToggle');
             const status = document.getElementById('aiToggleStatus');
             
@@ -1017,6 +1148,14 @@
         
         // 지연 시간 선택 함수
         function selectDelay(minutes) {
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
             // 모든 버튼의 선택 상태 제거
             const buttons = document.querySelectorAll('.delay-btn');
             buttons.forEach(btn => btn.classList.remove('selected'));
@@ -1029,7 +1168,7 @@
             });
             
             // localStorage에 저장 (문자열로 변환)
-            localStorage.setItem('autoReplyDelay', String(minutes));
+            localStorage.setItem(`autoReplyDelay_${userId}`, String(minutes));
             
             // UI 업데이트
             if (minutes === 0) {
@@ -1041,7 +1180,15 @@
         
         // 지연 시간 상태 로드 함수
         function loadDelayState() {
-            const delay = localStorage.getItem('autoReplyDelay');
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) return;
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            if (!git2User) return;
+            const git2UserObj = JSON.parse(git2User);
+            const userId = git2UserObj.id;
+            
+            const delay = localStorage.getItem(`autoReplyDelay_${userId}`);
             const buttons = document.querySelectorAll('.delay-btn');
             
             if (delay !== null) {
@@ -1061,9 +1208,26 @@
         
         // 등록대기 리뷰 개수 계산 함수
         function updatePendingCount() {
-            const storedReviews = localStorage.getItem('reviews');
-            const storedGit2Reviews = localStorage.getItem('git2_reviews');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인
+            const mainUser = localStorage.getItem('currentUser');
+            let mainUserId = null;
+            let connectedStores = [];
+            let git2UserId = null;
+            
+            if (mainUser) {
+                const mainUserObj = JSON.parse(mainUser);
+                mainUserId = mainUserObj.id;
+                const git2User = localStorage.getItem(`git2_currentUser_${mainUserId}`);
+                
+                if (git2User) {
+                    const git2UserObj = JSON.parse(git2User);
+                    git2UserId = git2UserObj.id;
+                    connectedStores = JSON.parse(localStorage.getItem(`so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`) || '[]');
+                }
+            }
+            
+            const storedReviews = mainUserId ? localStorage.getItem(`reviews_${mainUserId}`) : null;
+            const storedGit2Reviews = git2UserId ? localStorage.getItem(`git2_reviews_${git2UserId}`) : null;
             
             let allReviews = [];
             

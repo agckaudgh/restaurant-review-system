@@ -286,19 +286,20 @@
 </head>
 <body>
     <div class="container">
-        <div class="auth-section" id="authSection">
+        <div class="auth-section" id="authSection" style="display: none;">
             <button class="auth-btn" onclick="openModal('login')">배달의민족 로그인</button>
         </div>
         
         <div class="user-info" id="userInfo" style="display: none;">
             <span class="user-name" id="userName"></span>
-            <button class="logout-btn" onclick="logout()">로그아웃</button>
+            <button class="logout-btn" onclick="logout()" id="logoutBtn" style="display: none;">로그아웃</button>
         </div>
         
         <h1>🌟 가게 연결</h1>
         
-        <div id="loginSection">
+        <div id="loginSection" style="display: none;">
             <p>배달의민족 시스템의 가게 정보에 연결하기 위해 로그인해주세요.</p>
+            <p style="color: #666; font-size: 0.9em; margin-top: 10px;">※ 배달의민족 아이디는 git2.html에서 생성한 아이디를 사용해주세요.</p>
         </div>
         
         <div id="selectStoresSection" class="select-stores-container">
@@ -344,27 +345,55 @@
         
         // 로그인 상태 확인
         function checkLoginStatus() {
-            const currentUser = localStorage.getItem('git2_currentUser');
-            if (currentUser) {
-                const user = JSON.parse(currentUser);
+            // 메인 로그인 확인
+            const mainUser = localStorage.getItem('currentUser');
+            
+            // 메인 로그인은 필수
+            if (!mainUser) {
+                alert('로그인이 필요합니다. 메인 페이지로 이동합니다.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const mainUserObj = JSON.parse(mainUser);
+            // 메인 아이디별 배달의민족 로그인 정보 확인
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            
+            // 배달의민족 로그인 확인
+            if (git2User) {
+                const git2UserObj = JSON.parse(git2User);
+                // 배달의민족 로그인되어 있으면 가게 연결 화면 표시
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('userInfo').style.display = 'flex';
-                document.getElementById('userName').textContent = '👤 ' + user.name + '님';
+                document.getElementById('userName').textContent = '👤 ' + git2UserObj.name + '님 (배달의민족)';
+                document.getElementById('logoutBtn').style.display = 'block';
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('selectStoresSection').style.display = 'none';
                 document.getElementById('storesSection').style.display = 'block';
                 loadStores();
             } else {
-                document.getElementById('authSection').style.display = 'flex';
-                document.getElementById('userInfo').style.display = 'none';
-                document.getElementById('loginSection').style.display = 'block';
-                document.getElementById('selectStoresSection').style.display = 'none';
-                document.getElementById('storesSection').style.display = 'none';
+                // 배달의민족 로그인이 없으면 로그인 필요 화면 표시
+                showLoginRequired(mainUserObj);
             }
+        }
+        
+        // 배달의민족 로그인 필요 화면 표시
+        function showLoginRequired(mainUser) {
+            document.getElementById('authSection').style.display = 'flex';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('userName').textContent = '👤 ' + mainUser.name + '님 (배달의민족 로그인 필요)';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('selectStoresSection').style.display = 'none';
+            document.getElementById('storesSection').style.display = 'none';
         }
         
         // 모달 열기
         function openModal(type) {
+            if (type === 'login') {
+                // 로그인 폼 초기화
+                document.getElementById('loginForm').reset();
+            }
             document.getElementById(type + 'Modal').style.display = 'block';
         }
         
@@ -380,32 +409,69 @@
             const id = document.getElementById('loginId').value;
             const pw = document.getElementById('loginPw').value;
             
+            // 메인 로그인 확인 (필수)
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                alert('먼저 메인 페이지에서 로그인해주세요.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // git2 시스템의 사용자 확인 (git2.html에서 만든 계정)
             const users = JSON.parse(localStorage.getItem('git2_users') || '[]');
             const user = users.find(u => u.id === id && u.pw === pw);
             
             if (user) {
+                const mainUserObj = JSON.parse(mainUser);
                 const userInfo = { id: user.id, name: user.name, email: user.email, signupDate: user.signupDate };
-                localStorage.setItem('git2_currentUser', JSON.stringify(userInfo));
+                // 메인 아이디별로 배달의민족 로그인 정보 저장
+                localStorage.setItem(`git2_currentUser_${mainUserObj.id}`, JSON.stringify(userInfo));
                 alert('로그인 성공!');
                 closeModal('loginModal');
                 document.getElementById('loginForm').reset();
                 checkLoginStatus();
             } else {
-                alert('아이디 또는 비밀번호가 올바르지 않습니다.');
+                alert('아이디 또는 비밀번호가 올바르지 않습니다.\n배달의민족 아이디는 git2.html에서 생성한 아이디를 사용해주세요.');
             }
         }
         
         // 로그아웃
         function logout() {
-            localStorage.removeItem('git2_currentUser');
-            alert('로그아웃되었습니다.');
+            // 배달의민족 로그아웃 (메인 아이디별)
+            const mainUser = localStorage.getItem('currentUser');
+            if (mainUser) {
+                const mainUserObj = JSON.parse(mainUser);
+                localStorage.removeItem(`git2_currentUser_${mainUserObj.id}`);
+            }
+            alert('배달의민족 로그아웃되었습니다.');
             checkLoginStatus();
         }
         
         // 가게 목록 로드 (연결된 가게만)
         function loadStores() {
-            const allStores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                document.getElementById('storeList').innerHTML = '<p style="color: #999; text-align: center;">로그인이 필요합니다.</p>';
+                return;
+            }
+            
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            
+            if (!git2User) {
+                document.getElementById('storeList').innerHTML = '<p style="color: #999; text-align: center;">배달의민족 로그인이 필요합니다.</p>';
+                return;
+            }
+            
+            // 메인 아이디 + 배달의민족 아이디 조합으로 저장/조회
+            const git2UserObj = JSON.parse(git2User);
+            const storageKey = `so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`;
+            const connectedStores = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            
+            // 배달의민족 아이디별 가게 목록 조회
+            const allStores = JSON.parse(localStorage.getItem(`git2_stores_${git2UserObj.id}`) || '[]');
+            
             const storeList = document.getElementById('storeList');
             
             if (connectedStores.length === 0) {
@@ -441,8 +507,29 @@
         
         // 모든 가게 목록 로드 (선택용)
         function loadAllStoresForSelection() {
-            const allStores = JSON.parse(localStorage.getItem('git2_stores') || '[]');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                document.getElementById('selectStoreList').innerHTML = '<p style="color: #999; text-align: center;">로그인이 필요합니다.</p>';
+                return;
+            }
+            
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            
+            if (!git2User) {
+                document.getElementById('selectStoreList').innerHTML = '<p style="color: #999; text-align: center;">배달의민족 로그인이 필요합니다.</p>';
+                return;
+            }
+            
+            // 메인 아이디 + 배달의민족 아이디 조합으로 저장/조회
+            const git2UserObj = JSON.parse(git2User);
+            const storageKey = `so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`;
+            const connectedStores = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            
+            // 배달의민족 아이디별 가게 목록 조회
+            const allStores = JSON.parse(localStorage.getItem(`git2_stores_${git2UserObj.id}`) || '[]');
+            
             const selectStoreList = document.getElementById('selectStoreList');
             
             if (allStores.length === 0) {
@@ -479,7 +566,27 @@
         // 선택한 가게 연결
         function connectSelectedStores() {
             const checkboxes = document.querySelectorAll('.store-checkbox:checked:not(:disabled)');
-            const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+            
+            // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+            const mainUser = localStorage.getItem('currentUser');
+            if (!mainUser) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            
+            const mainUserObj = JSON.parse(mainUser);
+            const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+            
+            if (!git2User) {
+                alert('배달의민족 로그인이 필요합니다.');
+                return;
+            }
+            
+            // 메인 아이디 + 배달의민족 아이디 조합으로 저장
+            const git2UserObj = JSON.parse(git2User);
+            const storageKey = `so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`;
+            
+            const connectedStores = JSON.parse(localStorage.getItem(storageKey) || '[]');
             let count = 0;
             
             checkboxes.forEach(cb => {
@@ -491,7 +598,7 @@
             });
             
             if (count > 0) {
-                localStorage.setItem('so4_connectedStores', JSON.stringify(connectedStores));
+                localStorage.setItem(storageKey, JSON.stringify(connectedStores));
                 alert(`${count}개의 가게가 연결되었습니다!`);
             } else {
                 alert('연결할 가게를 선택해주세요.');
@@ -507,9 +614,29 @@
         // 가게 연결 해제
         function disconnectStore(storeId) {
             if (confirm('이 가게의 연결을 해제하시겠습니까?')) {
-                const connectedStores = JSON.parse(localStorage.getItem('so4_connectedStores') || '[]');
+                // 메인 로그인과 배달의민족 로그인 확인 (둘 다 필수)
+                const mainUser = localStorage.getItem('currentUser');
+                if (!mainUser) {
+                    alert('로그인이 필요합니다.');
+                    return;
+                }
+                
+                const mainUserObj = JSON.parse(mainUser);
+                const git2User = localStorage.getItem(`git2_currentUser_${mainUserObj.id}`);
+                
+                if (!git2User) {
+                    alert('배달의민족 로그인이 필요합니다.');
+                    return;
+                }
+                
+                // 메인 아이디 + 배달의민족 아이디 조합으로 저장/조회
+                const git2UserObj = JSON.parse(git2User);
+                const storageKey = `so4_connectedStores_${mainUserObj.id}_${git2UserObj.id}`;
+                
+                const connectedStores = JSON.parse(localStorage.getItem(storageKey) || '[]');
                 const filteredStores = connectedStores.filter(id => id !== storeId);
-                localStorage.setItem('so4_connectedStores', JSON.stringify(filteredStores));
+                localStorage.setItem(storageKey, JSON.stringify(filteredStores));
+                
                 alert('가게 연결이 해제되었습니다.');
                 loadStores();
             }
@@ -525,4 +652,6 @@
     </script>
 </body>
 </html>
+
+
 

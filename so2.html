@@ -207,7 +207,13 @@
     <script>
         // 지연된 자동 답글 체크 함수
         function checkPendingAutoReplies() {
-            const storedReviews = localStorage.getItem('reviews');
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) return;
+            
+            const currentUserObj = JSON.parse(currentUser);
+            const mainUserId = currentUserObj.id;
+            
+            const storedReviews = localStorage.getItem(`reviews_${mainUserId}`);
             if (!storedReviews) return;
             
             const reviews = JSON.parse(storedReviews);
@@ -239,9 +245,9 @@
                 }
             });
             
-            // 변경사항이 있으면 localStorage에 저장
+            // 변경사항이 있으면 localStorage에 저장 (메인 아이디별로 분리)
             if (hasChanges) {
-                localStorage.setItem('reviews', JSON.stringify(reviews));
+                localStorage.setItem(`reviews_${mainUserId}`, JSON.stringify(reviews));
                 console.log('지연된 자동 답글이 추가되었습니다!');
             }
         }
@@ -254,8 +260,16 @@
             const container = document.getElementById('reviewsContainer');
             const emptyMessage = document.getElementById('emptyMessage');
             
-            // localStorage에서 리뷰 가져오기
-            const storedReviews = localStorage.getItem('reviews');
+            // localStorage에서 리뷰 가져오기 (메인 아이디별로 분리)
+            const currentUser = localStorage.getItem('currentUser');
+            if (!currentUser) {
+                container.innerHTML = '<div class="empty-message">로그인이 필요합니다.</div>';
+                return;
+            }
+            
+            const currentUserObj = JSON.parse(currentUser);
+            const mainUserId = currentUserObj.id;
+            const storedReviews = localStorage.getItem(`reviews_${mainUserId}`);
             
             if (!storedReviews) {
                 container.innerHTML = '<div class="empty-message">아직 작성된 리뷰가 없습니다.</div>';

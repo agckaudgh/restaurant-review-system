@@ -301,7 +301,7 @@
             const pw = document.getElementById('signupPw').value;
             const name = document.getElementById('signupName').value;
             
-            // 기존 사용자 확인
+            // 독립적인 배달의민족 회원가입
             const users = JSON.parse(localStorage.getItem('baeminUsers') || '[]');
             const existingUser = users.find(u => u.id === id);
             
@@ -331,6 +331,7 @@
             const id = document.getElementById('loginId').value;
             const pw = document.getElementById('loginPw').value;
             
+            // 독립적인 배달의민족 로그인
             const users = JSON.parse(localStorage.getItem('baeminUsers') || '[]');
             const user = users.find(u => u.id === id && u.pw === pw);
             
